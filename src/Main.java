@@ -1,7 +1,6 @@
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
-import java.util.Queue;
 public class Main {
 
     public static LinkedList<Card> makeDeck() {
@@ -40,8 +39,8 @@ public class Main {
         return leadingCard == myCard;
     }
 
-    public static void printScores(Queue<Player> playerQueue) {
-        for (Player myPlayer : playerQueue) {
+    public static void printScores(Player[] players) {
+        for (Player myPlayer : players) {
             System.out.println("Player " + myPlayer.ID + " score : " + myPlayer.score);
         }
     }
@@ -68,44 +67,45 @@ public class Main {
         }
         System.out.println("Deck created");
 
-        Queue<Player> playerQueue = new LinkedList<>();
+        Player[] players = new Player[4];
         for (int i = 0; i < playerCount; i++) {
-            playerQueue.add(new Player(startingHands.get(i)));
+            players[i] = new Player(startingHands.get(i));
         }
         System.out.println("Players created");
 
         //Game loop starts here
         boolean twoClubFound = false;
-        Player currentPlayer = playerQueue.poll();
+        int count = 0;
+        Player currentPlayer;
         while (!twoClubFound) {
-            assert currentPlayer != null;
+            currentPlayer = players[count % 4];
             if (currentPlayer.contains(2, "clubs")) {
                 twoClubFound = true;
             } else {
-                playerQueue.add(currentPlayer);
-                currentPlayer = playerQueue.poll();
+                count++;
             }
         }
         int round = 1;
         String startingSuit = "Clubs";
         System.out.println("Starting game");
-        Player leadingPlayer = playerQueue.peek();
+        currentPlayer = players[count % 4];
+
         while (round <= 13) { //game loop
             LinkedList<Card> pile = new LinkedList<>();
-            while (pile.size() <= 4) { //round loop
+            Player leadingPlayer = currentPlayer;
+
+            while (pile.size() < 4) { //round loop
                 pile.add(currentPlayer.takeTurn(pile,startingSuit,playerCount));
                 if (isLeadingCard(pile.getLast(),pile)) {
                     leadingPlayer = currentPlayer;
                 }
-                playerQueue.add(currentPlayer);
-                currentPlayer = playerQueue.poll();
-                startingSuit = null;
+                count++;
             } //end of round
             System.out.println("This round's pile: " + pile);
-
+            startingSuit = null;
             Player shooter = null;
 
-            for (Player myPlayer : playerQueue) {
+            for (Player myPlayer : players) {
                 if (shootMoonCheck(myPlayer.getHand())) {
                     shooter = myPlayer;
                     break;
@@ -113,7 +113,7 @@ public class Main {
             }
 
             if (shooter != null) {
-                for (Player myPlayer : playerQueue) {
+                for (Player myPlayer : players) {
                     if (myPlayer != shooter) {
                         myPlayer.score += 13;
                     }
@@ -129,7 +129,7 @@ public class Main {
             }
             System.out.println("End of round " + round);
             round++;
-            printScores(playerQueue);
+            printScores(players);
 
         } //end of game
 
